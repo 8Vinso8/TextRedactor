@@ -14,6 +14,7 @@ class MyWidget(QMainWindow):
         uic.loadUi('main1.ui', self)
         self.loadButton.clicked.connect(self.open_file)
         self.saveButton.clicked.connect(self.save_file)
+        self.antiCapsButton.clicked.connect(self.anti_caps)
 
     def open_file(self):
         file = QFileDialog.getOpenFileName(self, 'Открыть файл', '/text', 'Text (*.txt)')[0]
@@ -26,6 +27,13 @@ class MyWidget(QMainWindow):
         if file:
             with open(file, 'w', encoding="utf-8") as f:
                 f.write(self.textEdit.toPlainText())
+    
+    def anti_caps(self):
+        text = self.textEdit.toPlainText()
+        sentences = list()
+        for sentence in text.split('. '):
+            sentences.append(sentence[0].upper() + sentence[1:].lower())
+        self.textEdit.setText('. '.join(sentences))
 
 
 
