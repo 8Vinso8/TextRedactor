@@ -1,0 +1,36 @@
+import sys
+from PyQt5 import uic
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog
+
+
+class MyWidget(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.word = ''
+        self.test = 0
+        self.initUI()
+
+    def initUI(self):
+        uic.loadUi('main1.ui', self)
+        self.loadButton.clicked.connect(self.open_file)
+        self.saveButton.clicked.connect(self.save_file)
+
+    def open_file(self):
+        file = QFileDialog.getOpenFileName(self, 'Открыть файл', '/text', 'Text (*.txt)')[0]
+        if file:
+            with open(file, 'r', encoding="utf-8") as f:
+                self.textEdit.setText(f.read())
+
+    def save_file(self):
+        file = QFileDialog.getSaveFileName(self, 'Сохранить файл', '/text', 'Text (*.txt)')[0]
+        if file:
+            with open(file, 'w', encoding="utf-8") as f:
+                f.write(self.textEdit.toPlainText())
+
+
+
+
+app = QApplication(sys.argv)
+ex = MyWidget()
+ex.show()
+sys.exit(app.exec_())
