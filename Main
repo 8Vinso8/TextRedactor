@@ -1,19 +1,29 @@
 import sys
 from PyQt5 import uic
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog
+import enchant
 
 
 class MyWidget(QMainWindow):
     def __init__(self):
         super().__init__()
         self.initUI()
+        self.en_to_ru = {'q': 'й', 'w': 'ц', 'e': 'у', 'r': 'к', 't': 'е', 'y': 'н', 'u': 'г', 'i': 'ш', 'o': 'щ',
+                         'p': 'з', '[': 'х', '{': 'Х', ']': 'ъ', '}': 'Ъ', 'a': 'ф', 's': 'ы', 'd': 'в', 'f': 'а',
+                         'g': 'п', 'h': 'р', 'j': 'о', 'k': 'л', 'l': 'д', ';': 'ж', ':': 'Ж', "'": 'э', '"': 'Э',
+                         'z': 'я', 'x': 'ч', 'c': 'с', 'v': 'м', 'b': 'и', 'n': 'т', 'm': 'ь', ',': 'б', '<': 'Б',
+                         '.': 'ю', '>': 'Ю', '/': '.', '?': ',', '@': '"', '#': '№', '$': ';', '^': ':', '&': '?'}
+        self.ru_to_en = {value: key for key, value in self.en_to_ru.items()}
+        self.en = enchant.Dict('en_US')
+        self.ru = enchant.Dict('ru_RU')
 
     def initUI(self):
         uic.loadUi('main1.ui', self)
         self.loadButton.clicked.connect(self.open_file)
         self.saveButton.clicked.connect(self.save_file)
         self.antiCapsButton.clicked.connect(self.anti_caps)
-
+        self.puntoButton.clicked.connect(self.punto_switch)
+        
     def open_file(self):
         file = QFileDialog.getOpenFileName(self, 'Открыть файл', '/text', 'Text (*.txt)')[0]
         if file:
@@ -33,7 +43,38 @@ class MyWidget(QMainWindow):
             sentences.append(sentence[0].upper() + sentence[1:].lower())
         self.textEdit.setText('. '.join(sentences))
 
-
+    def punto_switch(self):
+        new_text = []
+        for word in self.textEdit.toPlainText().split():
+            new_word = []
+            if any(i.lower() in self.en_to_ru for i in word):
+                for j in word:
+                    if j.isupper():
+                        new_word.append(self.en_to_ru[j.lower()].upper() if j.lower() in self.en_to_ru else j)
+                    else:
+                        new_word.append(self.en_to_ru[j] if j in self.en_to_ru else j)
+            elif any(j.lower() in self.ru_to_en for j in word):
+                for j in word:
+                    if j.isupper():
+                        new_word.append(self.ru_to_en[j.lower()].upper() if j.lower() in self.ru_to_en else j)
+                    else:
+                        new_word.append(self.ru_to_en[j] if j in self.ru_to_en else j)
+            new_word_without_signs = []
+            for j in new_word:
+                if j not in '-—!@#$%^&*()_+"№;:?\',.1234567890=/\\|':
+                    new_word_without_signs.append(j)
+            new_word_without_signs = ''.join(new_word_without_signs)
+            word_without_signs = []
+            for j in word:
+                if j not in '-—!@#$%^&*()_+"№;:?\',.1234567890=/\\|':
+                    word_without_signs.append(j)
+            word_without_signs = ''.join(word_without_signs)
+            if not self.ru.check(word_without_signs) and (self.ru.check(new_word_without_signs) or
+                                                          self.en.check(new_word_without_signs)):
+                new_text.append(''.join(new_word))
+            else:
+                new_text.append(word)
+        self.textEdit.setText(' '.join(new_text))
 
 
 app = QApplication(sys.argv)
