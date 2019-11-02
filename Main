@@ -23,7 +23,8 @@ class MyWidget(QMainWindow):
         self.saveButton.clicked.connect(self.save_file)
         self.antiCapsButton.clicked.connect(self.anti_caps)
         self.puntoButton.clicked.connect(self.punto_switch)
-        
+        self.sarkazmButton.clicked.connect(self.sarkazm_mode)
+
     def open_file(self):
         file = QFileDialog.getOpenFileName(self, 'Открыть файл', '/text', 'Text (*.txt)')[0]
         if file:
@@ -35,7 +36,7 @@ class MyWidget(QMainWindow):
         if file:
             with open(file, 'w', encoding="utf-8") as f:
                 f.write(self.textEdit.toPlainText())
-    
+
     def anti_caps(self):
         text = self.textEdit.toPlainText()
         sentences = list()
@@ -75,6 +76,21 @@ class MyWidget(QMainWindow):
             else:
                 new_text.append(word)
         self.textEdit.setText(' '.join(new_text))
+
+    def sarkazm_mode(self):
+        text = self.textEdit.toPlainText()
+        new_text = ''
+        up = True
+        for simvol in text:
+            if simvol.isalpha():
+                if up:
+                    new_text += simvol.upper()
+                else:
+                    new_text += simvol.lower()
+            else:
+                new_text += simvol
+            up = not up
+        self.textEdit.setText(new_text)
 
 
 app = QApplication(sys.argv)
