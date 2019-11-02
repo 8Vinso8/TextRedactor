@@ -6,8 +6,6 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog
 class MyWidget(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.word = ''
-        self.test = 0
         self.initUI()
 
     def initUI(self):
