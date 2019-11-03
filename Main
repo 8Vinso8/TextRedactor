@@ -39,6 +39,8 @@ class MyWidget(QMainWindow):
 
     def anti_caps(self):
         text = self.textEdit.toPlainText()
+        if not text:
+            return
         sentences = list()
         for sentence in text.split('. '):
             sentences.append(sentence[0].upper() + sentence[1:].lower())
