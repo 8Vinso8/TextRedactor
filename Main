@@ -1,7 +1,31 @@
-import sys
-from PyQt5 import uic
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog
 import enchant
+import sys
+import os
+import logging
+
+
+def _append_run_path():
+    if getattr(sys, 'frozen', False):
+        pathlist = []
+        # If the application is run as a bundle, the pyInstaller bootloader
+        # extends the sys module by a flag frozen=True and sets the app
+        # path into variable _MEIPASS'.
+        pathlist.append(sys._MEIPASS)
+
+        # the application exe path
+        _main_app_path = os.path.dirname(sys.executable)
+        pathlist.append(_main_app_path)
+
+        # append to system path enviroment
+        os.environ["PATH"] += os.pathsep + os.pathsep.join(pathlist)
+
+    logging.error("current PATH: %s", os.environ['PATH'])
+
+
+_append_run_path()
+
+from PyQt5 import uic
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QWidget
 
 
 class MyWidget(QMainWindow):
@@ -93,6 +117,80 @@ class MyWidget(QMainWindow):
                 new_text += simvol
             up = not up
         self.textEdit.setText(new_text)
+        
+    def all_low(self):
+        self.textEdit.setText(self.textEdit.toPlainText().lower())
+
+    def all_up(self):
+        self.textEdit.setText(self.textEdit.toPlainText().upper())
+
+    def show_change(self):
+        self.change_window = ChangeWindow()
+        self.change_window.show()
+
+    def change(self, replaceable, replacing):
+        self.textEdit.setText(self.textEdit.toPlainText().replace(replaceable, replacing))
+
+    def show_options(self):
+        self.options_window = OptionsWindow()
+        self.options_window.show()
+
+    def show_help(self):
+        self.help_window = HelpWindow()
+        self.help_window.show()
+
+    def change_font(self):
+        self.textEdit.setFont(self.fontComboBox.currentFont())
+
+    def change_font_size(self):
+        self.textEdit.setFontPointSize(self.fontsizeBox.value())
+
+
+class HelpWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.initUI()
+
+    def initUI(self):
+        uic.loadUi('help.ui', self)
+
+
+class OptionsWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.initUI()
+
+    def initUI(self):
+        uic.loadUi('options.ui', self)
+        self.saveButton.clicked.connect(self.save_options)
+
+    # Сохраняет настройки
+    def save_options(self):
+        pass
+        self.close()
+
+    # Экспортирует настройки
+    def export_options(self):
+        pass
+
+    # Импортирует настройки
+    def import_options(self):
+        pass
+
+
+class ChangeWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.initUI()
+
+    def initUI(self):
+        uic.loadUi('change.ui', self)
+        self.changeButton.clicked.connect(self.get_parameters_for_change)
+        self.lineEdit.text()
+
+    def get_parameters_for_change(self):
+        main_window.change(self.lineEdit.text(), self.lineEdit_2.text())
+        self.close()
 
 
 app = QApplication(sys.argv)
