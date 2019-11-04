@@ -56,10 +56,10 @@ class MyWidget(QMainWindow):
                 self.textEdit.setText(f.read())
 
     def save_file(self):
-        file = QFileDialog.getSaveFileName(self, 'Сохранить файл', '/text', 'Text (*.txt)')[0]
+        file = QFileDialog.getSaveFileName(self, 'Сохранить файл', '/text', 'HTML (*.htm)')[0]
         if file:
             with open(file, 'w', encoding="utf-8") as f:
-                f.write(self.textEdit.toPlainText())
+                f.write(self.textEdit.toHtml())
 
     def anti_caps(self):
         text = self.textEdit.toPlainText()
