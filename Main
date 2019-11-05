@@ -53,6 +53,8 @@ class MyWidget(QMainWindow):
         self.changeButton.clicked.connect(self.show_change)
         self.helpButton.clicked.connect(self.show_help)
         self.optionsButton.clicked.connect(self.show_options)
+        self.fontComboBox.currentFontChanged.connect(self.change_font)
+        self.fontsizeBox.valueChanged.connect(self.change_font_size)
 
     def open_file(self):
         file = QFileDialog.getOpenFileName(self, 'Открыть файл', '/text', 'HTML (*.htm)')[0]
