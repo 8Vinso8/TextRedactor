@@ -48,12 +48,17 @@ class MyWidget(QMainWindow):
         self.antiCapsButton.clicked.connect(self.anti_caps)
         self.puntoButton.clicked.connect(self.punto_switch)
         self.sarkazmButton.clicked.connect(self.sarkazm_mode)
+        self.alllowButton.clicked.connect(self.all_low)
+        self.allupButton.clicked.connect(self.all_up)
+        self.changeButton.clicked.connect(self.show_change)
+        self.helpButton.clicked.connect(self.show_help)
+        self.optionsButton.clicked.connect(self.show_options)
 
     def open_file(self):
-        file = QFileDialog.getOpenFileName(self, 'Открыть файл', '/text', 'Text (*.txt)')[0]
+        file = QFileDialog.getOpenFileName(self, 'Открыть файл', '/text', 'HTML (*.htm)')[0]
         if file:
             with open(file, 'r', encoding="utf-8") as f:
-                self.textEdit.setText(f.read())
+                self.textEdit.setHtml(f.read())
 
     def save_file(self):
         file = QFileDialog.getSaveFileName(self, 'Сохранить файл', '/text', 'HTML (*.htm)')[0]
@@ -194,6 +199,6 @@ class ChangeWindow(QWidget):
 
 
 app = QApplication(sys.argv)
-ex = MyWidget()
-ex.show()
+main_window = MyWidget()
+main_window.show()
 sys.exit(app.exec_())
