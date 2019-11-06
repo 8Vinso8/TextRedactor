@@ -2,6 +2,7 @@ import enchant
 import sys
 import os
 import logging
+import sqlite3
 
 
 def _append_run_path():
@@ -25,7 +26,7 @@ def _append_run_path():
 _append_run_path()
 
 from PyQt5 import uic
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QWidget
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QWidget, QButtonGroup
 
 
 class MyWidget(QMainWindow):
@@ -43,8 +44,6 @@ class MyWidget(QMainWindow):
 
     def initUI(self):
         uic.loadUi('main1.ui', self)
-        self.loadButton.clicked.connect(self.open_file)
-        self.saveButton.clicked.connect(self.save_file)
         self.antiCapsButton.clicked.connect(self.anti_caps)
         self.puntoButton.clicked.connect(self.punto_switch)
         self.sarkazmButton.clicked.connect(self.sarkazm_mode)
@@ -55,18 +54,15 @@ class MyWidget(QMainWindow):
         self.optionsButton.clicked.connect(self.show_options)
         self.fontComboBox.currentFontChanged.connect(self.change_font)
         self.fontsizeBox.valueChanged.connect(self.change_font_size)
+        self.filesButton.clicked.connect(self.show_files)
 
-    def open_file(self):
-        file = QFileDialog.getOpenFileName(self, 'Открыть файл', '/text', 'HTML (*.htm)')[0]
-        if file:
-            with open(file, 'r', encoding="utf-8") as f:
-                self.textEdit.setHtml(f.read())
+    def open_file(self, path):
+        with open(path, 'r', encoding="utf-8") as f:
+            self.textEdit.setHtml(f.read())
 
-    def save_file(self):
-        file = QFileDialog.getSaveFileName(self, 'Сохранить файл', '/text', 'HTML (*.htm)')[0]
-        if file:
-            with open(file, 'w', encoding="utf-8") as f:
-                f.write(self.textEdit.toHtml())
+    def save_file(self, path):
+        with open(path, 'w', encoding="utf-8") as f:
+            f.write(self.textEdit.toHtml())
 
     def anti_caps(self):
         text = self.textEdit.toPlainText()
@@ -151,6 +147,10 @@ class MyWidget(QMainWindow):
 
     def change_font_size(self):
         self.textEdit.setFontPointSize(self.fontsizeBox.value())
+        
+    def show_files(self):
+        self.files_window = RecentFilesWindow()
+        self.files_window.show()
 
 
 class HelpWindow(QWidget):
@@ -198,6 +198,69 @@ class ChangeWindow(QWidget):
     def get_parameters_for_change(self):
         main_window.change(self.lineEdit.text(), self.lineEdit_2.text())
         self.close()
+        
+        
+class RecentFilesWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.con = sqlite3.connect('files.db')
+        self.mode = None
+        cur = self.con.cursor()
+        self.items = list([i[0] for i in cur.execute('SELECT * FROM Files').fetchall()])
+        self.initUI()
+
+    def initUI(self):
+        uic.loadUi('data.ui', self)
+        self.addExButton.clicked.connect(self.add_ex_item)
+        self.addNewButton.clicked.connect(self.add_new_item)
+        self.button_group = QButtonGroup()
+        self.button_group.addButton(self.delButton)
+        self.button_group.addButton(self.saveButton)
+        self.button_group.addButton(self.loadButton)
+        self.button_group.buttonClicked.connect(self._on_radio_button_clicked)
+        self.listWidget.itemActivated.connect(self.itemActivated_event)
+        for item in self.items:
+            self.listWidget.addItem(item)
+
+    def add_to_db(self, path):
+        if path:
+            if path not in self.items:
+                cur = self.con.cursor()
+                cur.execute(f'INSERT INTO Files (path) VALUES ("{path}")')
+                self.con.commit()
+                self.listWidget.addItem(path)
+                self.items.append(path)
+
+    def add_ex_item(self):
+        path = QFileDialog.getOpenFileName(self, 'Сохранить файл', '/text', 'HTML (*.htm)')[0]
+        self.add_to_db(path)
+
+    def add_new_item(self):
+        path = QFileDialog.getSaveFileName(self, 'Сохранить файл', '/text', 'HTML (*.htm)')[0]
+        self.add_to_db(path)
+
+    def _on_radio_button_clicked(self, button):
+        mode = button.text().split()[1]
+        if mode == 'удаления':
+            self.mode = 'del'
+        elif mode == 'сохранения':
+            self.mode = 'save'
+        else:
+            self.mode = 'load'
+
+    def itemActivated_event(self, item):
+        if self.mode == 'del':
+            self.listWidget.takeItem(self.listWidget.row(item))
+            cur = self.con.cursor()
+            cur.execute(f'DELETE from Files WHERE path= "{item.text()}"')
+            self.con.commit()
+            self.items.remove(item.text())
+        elif self.mode == 'load':
+            main_window.open_file(item.text())
+            self.close()
+        elif self.mode == 'save':
+            main_window.save_file(item.text())
+            self.close()
 
 
 app = QApplication(sys.argv)
