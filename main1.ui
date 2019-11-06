@@ -74,16 +74,9 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout">
          <item>
-          <widget class="QPushButton" name="loadButton">
+          <widget class="QPushButton" name="filesButton">
            <property name="text">
-            <string>Открыть</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="saveButton">
-           <property name="text">
-            <string>Сохранить</string>
+            <string>Работа с файлом</string>
            </property>
           </widget>
          </item>
