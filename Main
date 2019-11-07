@@ -151,6 +151,9 @@ class MyWidget(QMainWindow):
     def show_files(self):
         self.files_window = RecentFilesWindow()
         self.files_window.show()
+        
+    def change_back(self, path):
+        self.textEdit.setStyleSheet(f"background-image: url({path})")
 
 
 class HelpWindow(QWidget):
@@ -165,24 +168,53 @@ class HelpWindow(QWidget):
 class OptionsWindow(QWidget):
     def __init__(self):
         super().__init__()
+        self.con = sqlite3.connect('files.db')
+        self.mode = None
+        cur = self.con.cursor()
+        self.items = list([i[0] for i in cur.execute('SELECT * FROM Backs').fetchall()])
         self.initUI()
 
     def initUI(self):
-        uic.loadUi('options.ui', self)
-        self.saveButton.clicked.connect(self.save_options)
+        uic.loadUi('backgrounds.ui', self)
+        self.addButton.clicked.connect(self.add_item)
+        self.button_group = QButtonGroup()
+        self.button_group.addButton(self.delButton)
+        self.button_group.addButton(self.loadButton)
+        self.button_group.buttonClicked.connect(self._on_radio_button_clicked)
+        self.listWidget.itemActivated.connect(self.itemActivated_event)
+        for item in self.items:
+            self.listWidget.addItem(item)
 
-    # Сохраняет настройки
-    def save_options(self):
-        pass
-        self.close()
+    def add_to_db(self, path):
+        if path:
+            if path not in self.items:
+                cur = self.con.cursor()
+                cur.execute(f'INSERT INTO Backs (path) VALUES ("{path}")')
+                self.con.commit()
+                self.listWidget.addItem(path)
+                self.items.append(path)
 
-    # Экспортирует настройки
-    def export_options(self):
-        pass
+    def add_item(self):
+        path = QFileDialog.getOpenFileName(self, 'Сохранить файл', '/image', 'Images (*.png *.jpg *.jpeg)')[0]
+        self.add_to_db(path)
 
-    # Импортирует настройки
-    def import_options(self):
-        pass
+    def _on_radio_button_clicked(self, button):
+        mode = button.text().split()[1]
+        if mode == 'удаления':
+            self.mode = 'del'
+        else:
+            self.mode = 'load'
+
+    def itemActivated_event(self, item):
+        if self.mode == 'del':
+            self.listWidget.takeItem(self.listWidget.row(item))
+            cur = self.con.cursor()
+            cur.execute(f'DELETE from Backs WHERE path= "{item.text()}"')
+            self.con.commit()
+            self.items.remove(item.text())
+        elif self.mode == 'load':
+            main_window.change_back(item.text())
+            self.close()
 
 
 class ChangeWindow(QWidget):
