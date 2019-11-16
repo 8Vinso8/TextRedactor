@@ -14,3 +14,5 @@
 *Замена фона текстового поля на выбранный(Расположение файла сохраняется в базу данных).
 
 Файлы словаря (ru_RU.aff и ru_RU.dic) скинуть в site-packages/enchant/share/enchant/myspell
+
+https://github.com/Vring/TextRedactor
