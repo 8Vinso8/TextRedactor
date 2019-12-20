@@ -76,6 +76,9 @@ class MyWidget(QMainWindow):
     def punto_switch(self):
         new_text = []
         for word in self.textEdit.toPlainText().split():
+            if not word.isalpha():
+                new_text.append(word)
+                continue
             new_word = []
             if any(i.lower() in self.en_to_ru for i in word):
                 for j in word:
